@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Saheli — तुम्हारी रोज़मर्रा की सहेली</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ivory:#FAF3E8;
+    --ivory-deep:#F0E6D4;
+    --indigo:#1E2A4A;
+    --indigo-soft:#2E3E66;
+    --marigold:#E4A020;
+    --marigold-soft:#F6DFA6;
+    --maroon:#8C2F39;
+    --sage:#5E8368;
+    --ink:#26221E;
+    --ink-soft:#5A5348;
+    --line: rgba(38,34,30,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--ivory);
+    color:var(--ink);
+    font-family:'Noto Sans Devanagari','Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior:none;
+  }
+  #app{
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    max-width:520px;
+    margin:0 auto;
+    background:var(--ivory);
+    position:relative;
+    overflow:hidden;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    flex:0 0 auto;
+    background:var(--indigo);
+    color:var(--ivory);
+    padding:22px 20px 20px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{
+    content:"";
+    position:absolute;
+    top:-40px; right:-40px;
+    width:150px;height:150px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(228,160,32,0.35) 0%, rgba(228,160,32,0) 70%);
+  }
+  .dot-row{
+    display:flex;
+    gap:6px;
+    margin-bottom:12px;
+  }
+  .dot-row span{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--marigold);
+    opacity:0.85;
+  }
+  .dot-row span:nth-child(2){background:var(--maroon);}
+  .dot-row span:nth-child(3){background:var(--sage);}
+  .brand-row{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    position:relative;
+    z-index:1;
+  }
+  .brand-name{
+    font-family:'Baloo 2',sans-serif;
+    font-weight:700;
+    font-size:28px;
+    letter-spacing:0.2px;
+  }
+  .brand-tag{
+    font-size:13.5px;
+    color:var(--marigold-soft);
+    font-weight:500;
+  }
+  .brand-sub{
+    margin-top:6px;
+    font-size:13px;
+    color:rgba(250,243,232,0.72);
+    line-height:1.5;
+    max-width:38ch;
+  }
+
+  /* ---------- Chat scroll area ---------- */
+  #scroll{
+    flex:1 1 auto;
+    overflow-y:auto;
+    padding:18px 16px 8px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .msg{
+    max-width:84%;
+    padding:11px 14px;
+    border-radius:16px;
+    font-size:14.5px;
+    line-height:1.6;
+    white-space:pre-wrap;
+  }
+  .msg.bot{
+    align-self:flex-start;
+    background:#fff;
+    border:1px solid var(--line);
+    border-bottom-left-radius:4px;
+    color:var(--ink);
+  }
+  .msg.user{
+    align-self:flex-end;
+    background:var(--indigo);
+    color:var(--ivory);
+    border-bottom-right-radius:4px;
+  }
+  .msg.bot.typing{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    padding:14px;
+  }
+  .typing span{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--ink-soft);
+    opacity:0.5;
+    animation:blink 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2){animation-delay:0.2s;}
+  .typing span:nth-child(3){animation-delay:0.4s;}
+  @keyframes blink{0%,80%,100%{opacity:0.25;transform:translateY(0);}40%{opacity:0.9;transform:translateY(-2px);}}
+
+  .bot-label{
+    font-size:11px;
+    font-weight:600;
+    color:var(--sage);
+    margin:2px 2px 2px 2px;
+    align-self:flex-start;
+  }
+
+  /* ---------- Topic chips (shown before first send) ---------- */
+  #intro{
+    padding:4px 2px 6px;
+  }
+  #intro p{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin:0 2px 12px;
+    line-height:1.6;
+  }
+  .chips{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+  }
+  .chip{
+    text-align:left;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:11px 12px;
+    font-size:13px;
+    font-family:inherit;
+    color:var(--indigo);
+    cursor:pointer;
+    line-height:1.4;
+    transition:background 0.15s ease, border-color 0.15s ease;
+  }
+  .chip:active{background:var(--ivory-deep);}
+  .chip:hover{border-color:var(--marigold);}
+  .chip .chip-dot{
+    display:inline-block;
+    width:6px;height:6px;
+    border-radius:50%;
+    background:var(--marigold);
+    margin-left:6px;
+  }
+
+  /* ---------- Input bar ---------- */
+  #inputbar{
+    flex:0 0 auto;
+    display:flex;
+    gap:8px;
+    align-items:flex-end;
+    padding:12px 14px calc(14px + env(safe-area-inset-bottom));
+    background:var(--ivory);
+    border-top:1px solid var(--line);
+  }
+  #textInput{
+    flex:1;
+    resize:none;
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:20px;
+    padding:11px 16px;
+    font-family:inherit;
+    font-size:14.5px;
+    color:var(--ink);
+    max-height:100px;
+    line-height:1.4;
+  }
+  #textInput:focus{outline:2px solid var(--marigold); outline-offset:1px;}
+  #sendBtn{
+    flex:0 0 auto;
+    width:42px;height:42px;
+    border-radius:50%;
+    border:none;
+    background:var(--marigold);
+    color:var(--indigo);
+    font-size:16px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  #sendBtn:active{background:var(--maroon); color:var(--ivory);}
+  #sendBtn:disabled{opacity:0.5;cursor:default;}
+
+  .disclaimer{
+    font-size:11px;
+    color:var(--ink-soft);
+    text-align:center;
+    padding:0 20px 10px;
+    line-height:1.5;
+  }
+
+  #scroll::-webkit-scrollbar{width:4px;}
+  #scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ivory:#181511;
+      --ivory-deep:#221E18;
+      --ink:#F2ECE2;
+      --ink-soft:#B8AF9F;
+      --line: rgba(242,236,226,0.14);
+    }
+    .msg.bot{background:#221E18;}
+    #textInput{background:#221E18; color:#F2ECE2; border-color: rgba(242,236,226,0.18);}
+  }
+  :root[data-theme="dark"]{
+    --ivory:#181511;
+    --ivory-deep:#221E18;
+    --ink:#F2ECE2;
+    --ink-soft:#B8AF9F;
+    --line: rgba(242,236,226,0.14);
+  }
+  :root[data-theme="dark"] .msg.bot{background:#221E18;}
+  :root[data-theme="dark"] .chip{background:#221E18;}
+  :root[data-theme="dark"] #textInput{background:#221E18; color:#F2ECE2; border-color: rgba(242,236,226,0.18);}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="dot-row"><span></span><span></span><span></span></div>
+    <div class="brand-row">
+      <span class="brand-name">सहेली</span>
+      <span class="brand-tag">Saheli</span>
+    </div>
+    <div class="brand-sub">तुम्हारी रोज़मर्रा की सहेली — पैसे, खाना, सफर, सेहत और खेती-मौसम की आसान भाषा में जानकारी</div>
+  </header>
+
+  <div id="scroll">
+    <div id="intro">
+      <p>नमस्ते! मैं सहेली हूं — पैसे-बचत, खाना, बस/सफर, सेहत-स्वच्छता और खेती-मौसम, इन सबमें तुम्हारी मदद करने के लिए यहां हूं। किसी भी सवाल के लिए नीचे टैप करो, या अपना सवाल खुद लिखो।</p>
+      <div class="chips" id="chipRow"></div>
+    </div>
+  </div>
+
+  <div id="inputbar">
+    <textarea id="textInput" rows="1" placeholder="अपना सवाल यहां लिखो..."></textarea>
+    <button id="sendBtn" aria-label="भेजो">➤</button>
+  </div>
+  <div class="disclaimer">सहेली सिर्फ सामान्य जानकारी देती है — पैसे, सेहत या सफर से जुड़ी बड़ी बात के लिए हमेशा बैंक, अस्पताल या बस स्टैंड से भी पूछो।</div>
+</div>
+
+<script>
+// Har entry: kuch keywords + uska jawab. User ke sawal mein jo keywords sabse zyada
+// match karte hain, wahi jawab dikhaya jata hai. Koi API/internet call nahi — sab
+// kuch isi file ke andar chalta hai, isliye kahin bhi (GitHub Pages, apni site) free host ho sakta hai.
+const ENTRIES = [
+  { keywords:["बचत","bachat","saving","save","पैसा बचाना"],
+    text:"हर महीने कमाई का थोड़ा हिस्सा (भले ही 50-100 रुपये हों) अलग रखना सीखो। पहले खर्च मत करो, पहले बचाओ — फिर बचे हुए में से खर्च करो।" },
+  { keywords:["बैंक खाता","bank account","khata","खाता"],
+    text:"घर में नकद रखने से चोरी और खर्च होने का खतरा रहता है। बैंक खाता पैसा सुरक्षित रखता है और सरकारी योजनाओं का पैसा सीधा खाते में आता है (Direct Benefit Transfer)।" },
+  { keywords:["pmjdy","जन धन","jan dhan"],
+    text:"प्रधानमंत्री जन धन योजना (PMJDY) जीरो बैलेंस पर बैंक खाता खोलने की योजना है। कोई न्यूनतम बैलेंस जरूरी नहीं, मुफ्त डेबिट कार्ड और ₹1 लाख तक का दुर्घटना बीमा भी मिलता है। नजदीकी बैंक शाखा या बैंक मित्र (Bank Correspondent) से खुलवा सकते हो।" },
+  { keywords:["सुकन्या","sukanya","बेटी","beti ki padhai"],
+    text:"सुकन्या समृद्धि योजना में 10 साल से कम उम्र की बेटी के नाम पर खाता खोलकर छोटी बचत जमा कर सकते हो, अच्छा ब्याज मिलता है, बेटी की पढ़ाई और शादी के लिए पैसा जमा होता है।" },
+  { keywords:["बीमा","insurance","bima","pmjjby","pmsby"],
+    text:"प्रधानमंत्री जीवन ज्योति बीमा योजना (PMJJBY) और सुरक्षा बीमा योजना (PMSBY) में बहुत कम सालाना प्रीमियम (कुछ सौ रुपये) पर जीवन और दुर्घटना बीमा मिलता है। बैंक शाखा में फॉर्म भरकर जुड़ सकते हो।" },
+  { keywords:["shg","स्वयं सहायता","self help group","समूह"],
+    text:"स्वयं सहायता समूह (SHG) में गांव/मोहल्ले की महिलाएं मिलकर छोटी-छोटी बचत करती हैं और जरूरत पड़ने पर आपस में या बैंक से कम ब्याज पर लोन ले सकती हैं। NRLM/आजीविका मिशन के जरिए बना सकते हो।" },
+  { keywords:["मुद्रा","mudra","व्यापार लोन","business loan","छोटा बिज़नेस"],
+    text:"प्रधानमंत्री मुद्रा योजना में छोटा व्यापार शुरू करने के लिए बिना गारंटी के ₹50,000 से ₹10 लाख तक का लोन मिलता है (शिशु, किशोर, तरुण श्रेणी में)। किराना दुकान, सिलाई, ब्यूटी पार्लर जैसे छोटे काम के लिए उपयोगी है।" },
+  { keywords:["upi","digital payment","phonepe","google pay","paytm","डिजिटल पेमेंट"],
+    text:"UPI (PhonePe, Google Pay, Paytm) से पैसा भेजना/मंगाना आसान और मुफ्त है। पैसा पाने के लिए कभी भी PIN डालने या QR कोड स्कैन करने की जरूरत नहीं होती — सिर्फ पैसा भेजते वक्त PIN डालो।" },
+  { keywords:["otp","फ्रॉड","fraud","scam","धोखा","पिन","password"],
+    text:"बैंक, पुलिस या कोई भी सरकारी अफसर कभी भी फोन पर OTP, पिन या पासवर्ड नहीं मांगता। कोई भी अनजान कॉल पर यह जानकारी कभी मत दो, चाहे वो कितनी भी जल्दी या डर की बात करे।" },
+  { keywords:["लॉटरी","lottery","इनाम","prize"],
+    text:"\"आपका इनाम निकला है, पैसे भेजो या OTP बताओ\" जैसे मैसेज या कॉल हमेशा फ्रॉड होते हैं। ऐसे किसी भी मैसेज पर भरोसा मत करो।" },
+  { keywords:["ब्याज","interest","सूद"],
+    text:"जब बैंक में पैसा जमा करते हो तो बैंक तुम्हें ब्याज देता है (पैसा बढ़ता है)। जब लोन लेते हो तो तुम्हें ब्याज देना पड़ता है (पैसा वापस ज्यादा देना पड़ता है)। हमेशा ब्याज दर पूछकर ही लोन लो।" },
+  { keywords:["साहूकार","sahukar","private loan"],
+    text:"बिना कागजी हिसाब वाले साहूकार बहुत ज्यादा ब्याज लेते हैं और मुश्किल में डाल सकते हैं। जहां तक हो सके बैंक, SHG या सरकारी योजना से ही लोन लो।" },
+  { keywords:["rd","fd","fixed deposit","recurring deposit"],
+    text:"Recurring Deposit (RD) में हर महीने थोड़ा पैसा जमा करते हो, Fixed Deposit (FD) में एक साथ पैसा जमा करके तय समय बाद ज्यादा पैसा मिलता है। दोनों बैंक में सुरक्षित बचत के अच्छे तरीके हैं।" },
+  { keywords:["सोना","gold","सोने में निवेश"],
+    text:"सोना खरीदना बचत का पुराना तरीका है, लेकिन ज्यादा सोना घर में रखना जोखिम भरा है। बैंक या पोस्ट ऑफिस की गोल्ड/बचत योजनाएं ज्यादा सुरक्षित विकल्प हैं।" },
+  { keywords:["पासबुक","passbook","statement","sms alert"],
+    text:"हर महीने अपनी बैंक पासबुक अपडेट करवाओ या SMS अलर्ट चालू रखो, ताकि पता रहे पैसा कहां से आया और कहां गया।" },
+  { keywords:["महिला योजना","women scheme","stand up india","उद्यमी"],
+    text:"मुद्रा योजना, स्टैंड-अप इंडिया योजना (महिला उद्यमियों के लिए लोन), और राज्य सरकार की महिला स्वरोजगार योजनाएं — इनकी जानकारी नजदीकी बैंक या ब्लॉक ऑफिस से ले सकते हो।" },
+  { keywords:["बजट","budget"],
+    text:"महीने की कमाई को तीन हिस्सों में बांटो — जरूरी खर्च (राशन, किराया), बचत, और बाकी खर्च। इससे पैसा कहां जा रहा है यह साफ दिखता है।" },
+  { keywords:["credit score","किस्त","installment","emi"],
+    text:"अगर लोन लेते हो और समय पर किस्त चुकाते हो, तो भविष्य में आसानी से लोन मिलता है। किस्त चूकने से आगे लोन मिलना मुश्किल हो जाता है।" },
+  { keywords:["सत्तू","sattu","litti"],
+    text:"सत्तू (भुने चने का आटा) सस्ता और पौष्टिक है। पानी, नींबू, नमक मिलाकर शरबत बनाओ, या सत्तू में मसाले भरकर लिट्टी बना सकते हो — गर्मी में शरीर को ठंडक और ताकत दोनों देता है।" },
+  { keywords:["खिचड़ी","khichdi"],
+    text:"चावल और दाल बराबर मात्रा में धोकर, हल्दी-नमक डालकर कुकर में पका लो। हल्की, सस्ती और पौष्टिक — बीमार होने पर या बच्चों के लिए बहुत अच्छी है।" },
+  { keywords:["स्प्राउट्स","sprouts","अंकुरित","मूंग"],
+    text:"मूंग या चना रातभर पानी में भिगो दो, सुबह कपड़े में बांधकर रख दो — 1-2 दिन में अंकुर निकल आएंगे। नाश्ते में प्याज-टमाटर-नींबू डालकर खाओ, प्रोटीन का सस्ता स्रोत है।" },
+  { keywords:["बचा हुआ खाना","leftover","बचे चावल","बचे आटे"],
+    text:"बचे चावल से पुलाव या टिक्की बना सकते हो, बचे आटे से पराठे — इससे खाना बर्बाद नहीं होता और पैसा भी बचता है।" },
+  { keywords:["मौसमी सब्जी","seasonal vegetable","सस्ती सब्जी"],
+    text:"मौसम के हिसाब से सब्जी खरीदो — यह सस्ती भी होती है और ताज़ा भी। बे-मौसम सब्जियां अक्सर महंगी होती हैं।" },
+  { keywords:["बस किराया","bus fare","टिकट","ticket"],
+    text:"सही किराया राज्य और रूट के हिसाब से बदलता है, इसलिए हमेशा कंडक्टर से टिकट लो और रसीद जरूर रखो। ज्यादातर राज्य परिवहन निगम की वेबसाइट या ऐप पर भी रूट और किराया लिस्ट मिलती है — सटीक किराया वहीं से पता चलेगा।" },
+  { keywords:["मुफ्त बस","free bus","रियायती बस","women bus"],
+    text:"कई राज्यों में महिलाओं के लिए मुफ्त या आधे किराए पर बस यात्रा की योजनाएं चल रही हैं। अपने राज्य में यह योजना है या नहीं, यह नजदीकी बस स्टैंड या राज्य परिवहन निगम के ऑफिस से पक्का पता करो, क्योंकि योजनाएं राज्य और समय के हिसाब से बदलती रहती हैं।" },
+  { keywords:["सफर सुरक्षा","travel safety","bus safety","यात्रा"],
+    text:"बस में सफर करते समय अपना सामान और बैग हमेशा अपने पास रखो, अनजान व्यक्ति से कुछ भी लेकर मत रखो, और रात के सफर में जितना हो सके भीड़भाड़ वाली सीट के पास बैठो।" },
+  { keywords:["टिकट रसीद","receipt"],
+    text:"टिकट की रसीद रखने से किसी विवाद या शिकायत की स्थिति में सबूत के तौर पर काम आती है।" },
+  { keywords:["हाथ धोना","handwash","हाथ धोने"],
+    text:"खाना बनाने से पहले, खाने से पहले और शौच के बाद साबुन से हाथ जरूर धोओ — इससे कई बीमारियों से बचाव होता है।" },
+  { keywords:["पानी सुरक्षित","safe water","पीने का पानी"],
+    text:"पानी को उबालकर या फिल्टर करके पिओ, खासकर बारिश के मौसम में। पानी को हमेशा ढककर साफ बर्तन में रखो।" },
+  { keywords:["मासिक धर्म","period","menstrual","सैनिटरी पैड"],
+    text:"साफ कपड़ा या सैनिटरी पैड इस्तेमाल करो और हर 4-6 घंटे में बदलो। इसमें झिझकने की जरूरत नहीं — आशा वर्कर या नजदीकी स्वास्थ्य केंद्र से मुफ्त पैड या जानकारी मिल सकती है।" },
+  { keywords:["गर्भावस्था","pregnancy","anc","आंगनवाड़ी"],
+    text:"गर्भावस्था के दौरान नजदीकी आंगनवाड़ी या PHC (Primary Health Centre) में नियमित जांच (ANC checkup) जरूर करवाओ, यह मुफ्त होती है और मां-बच्चे दोनों की सेहत के लिए जरूरी है।" },
+  { keywords:["टीकाकरण","vaccination","टीका"],
+    text:"सरकारी टीकाकरण कार्यक्रम के तहत बच्चों को समय पर सभी टीके मुफ्त में लगते हैं — आंगनवाड़ी या PHC से टीकाकरण कार्ड बनवाओ।" },
+  { keywords:["दस्त","diarrhea","ors"],
+    text:"दस्त होने पर तुरंत ORS घोल (साफ पानी में ORS पैकेट मिलाकर) पिलाओ, इससे शरीर में पानी की कमी नहीं होती। हालत ज्यादा गंभीर लगे तो तुरंत नजदीकी स्वास्थ्य केंद्र जाओ।" },
+  { keywords:["मौसम","weather","imd"],
+    text:"मौसम विभाग (IMD) की जानकारी रेडियो, टीवी या सरकारी मौसम ऐप पर मुफ्त मिलती है — खेती से जुड़ा कोई भी फैसला लेने से पहले मौसम जरूर चेक करो।" },
+  { keywords:["बारिश तैयारी","rain preparation","मानसून"],
+    text:"बारिश के मौसम से पहले घर की छत, अनाज भंडारण और मवेशियों के लिए सुरक्षित जगह की व्यवस्था पहले से कर लो।" },
+  { keywords:["पानी बचत","water saving","सिंचाई","drip irrigation"],
+    text:"बर्तन धोने और नहाने के बचे पानी को पौधों में डाल सकते हो। खेत में बूंद-बूंद सिंचाई (drip irrigation) से भी पानी की बचत होती है — इसकी सरकारी योजना की जानकारी कृषि विभाग से ले सकते हो।" },
+  { keywords:["किचन गार्डन","kitchen garden","सब्जी उगाना"],
+    text:"घर के आंगन में मिर्ची, धनिया, पालक जैसी सब्जियां उगाकर पैसा भी बचा सकते हो और ताज़ी सब्जी भी मिलेगी।" }
+];
+
+const FALLBACK = "माफ करना, इस सवाल की जानकारी अभी मेरे पास नहीं है। कृपया सही जगह (बैंक, अस्पताल, बस स्टैंड या कृषि विभाग, जो भी लागू हो) से पूछो — या नीचे दिए topics में से कोई try करो।";
+
+function findAnswer(query){
+  const q = query.toLowerCase();
+  let best = null, bestScore = 0;
+  for(const entry of ENTRIES){
+    let score = 0;
+    for(const kw of entry.keywords){
+      if(q.includes(kw.toLowerCase())) score++;
+    }
+    if(score > bestScore){ bestScore = score; best = entry; }
+  }
+  return best ? best.text : FALLBACK;
+}
+
+const CHIPS = [
+  "बचत कैसे शुरू करूं?",
+  "सत्तू से क्या-क्या बना सकते हैं?",
+  "बस किराया कैसे पता करूं?",
+  "पानी को सुरक्षित कैसे रखें?",
+  "मौसम की जानकारी कहां मिलेगी?",
+  "OTP फ्रॉड से कैसे बचें?"
+];
+
+const scrollEl = document.getElementById('scroll');
+const introEl = document.getElementById('intro');
+const chipRow = document.getElementById('chipRow');
+const textInput = document.getElementById('textInput');
+const sendBtn = document.getElementById('sendBtn');
+
+let sending = false;
+
+CHIPS.forEach(q => {
+  const b = document.createElement('button');
+  b.className = 'chip';
+  b.innerHTML = q + '<span class="chip-dot"></span>';
+  b.addEventListener('click', () => { if(!sending) sendMessage(q); });
+  chipRow.appendChild(b);
+});
+
+function addMessage(role, text){
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+  div.textContent = text;
+  scrollEl.appendChild(div);
+  scrollEl.scrollTop = scrollEl.scrollHeight;
+  return div;
+}
+
+function addTyping(){
+  const div = document.createElement('div');
+  div.className = 'msg bot typing';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  scrollEl.appendChild(div);
+  scrollEl.scrollTop = scrollEl.scrollHeight;
+  return div;
+}
+
+function sendMessage(text){
+  text = (text || '').trim();
+  if(!text || sending) return;
+  sending = true;
+  sendBtn.disabled = true;
+  if(introEl.parentNode) introEl.remove();
+
+  addMessage('user', text);
+  textInput.value = '';
+  textInput.style.height = 'auto';
+
+  const typingEl = addTyping();
+
+  setTimeout(() => {
+    const answer = findAnswer(text);
+    typingEl.classList.remove('typing');
+    typingEl.textContent = answer;
+    sending = false;
+    sendBtn.disabled = false;
+    scrollEl.scrollTop = scrollEl.scrollHeight;
+  }, 450);
+}
+
+sendBtn.addEventListener('click', () => sendMessage(textInput.value));
+textInput.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendMessage(textInput.value);
+  }
+});
+textInput.addEventListener('input', () => {
+  textInput.style.height = 'auto';
+  textInput.style.height = Math.min(textInput.scrollHeight, 100) + 'px';
+});
+</script>
+</body>
+</html>
